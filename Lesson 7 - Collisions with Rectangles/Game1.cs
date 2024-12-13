@@ -25,7 +25,7 @@ namespace Lesson_7___Collisions_with_Rectangles
         Rectangle exitRect;
 
         Texture2D barrierTexture;
-        Rectangle barrierRect1, barrierRect2;
+        List<Rectangle> barriers;
 
         Texture2D coinTexture;
         List<Rectangle> coins;
@@ -49,8 +49,9 @@ namespace Lesson_7___Collisions_with_Rectangles
             pacSpeed = Vector2.Zero;
             pacRect = new Rectangle(10, 10, 60, 60);
 
-            barrierRect1 = new Rectangle(0, 250, 350, 75);
-            barrierRect2 = new Rectangle(450, 250, 350, 75);
+            barriers = new List<Rectangle>();
+            barriers.Add(new Rectangle(0, 250, 350, 75));
+            barriers.Add(new Rectangle(450, 250, 350, 75));
 
             coins = new List<Rectangle>();
             coins.Add(new Rectangle(400, 50, coinTexture.Width, coinTexture.Height));
@@ -85,6 +86,7 @@ namespace Lesson_7___Collisions_with_Rectangles
         protected override void Update(GameTime gameTime)
         {
             keyboardState = Keyboard.GetState();
+            mouseState = Mouse.GetState();
 
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
@@ -112,6 +114,10 @@ namespace Lesson_7___Collisions_with_Rectangles
             }
             pacRect.Offset(pacSpeed);
 
+            foreach (Rectangle barrier in barriers)
+                if (pacRect.Intersects(barrier))
+                    pacRect.Offset(-pacSpeed);
+
             for (int i = 0; i < coins.Count; i++)
             {
                 if (pacRect.Intersects(coins[i]))
@@ -120,6 +126,11 @@ namespace Lesson_7___Collisions_with_Rectangles
                     i--;
                 }
             }
+            if (mouseState.LeftButton == ButtonState.Pressed)
+                if (exitRect.Contains(mouseState.X, mouseState.Y))
+                    Exit();
+            if (exitRect.Contains(pacRect))
+                Exit();
             // TODO: Add your update logic here
 
             base.Update(gameTime);
@@ -132,8 +143,8 @@ namespace Lesson_7___Collisions_with_Rectangles
             // TODO: Add your drawing code here
             _spriteBatch.Begin();
 
-            _spriteBatch.Draw(barrierTexture, barrierRect1, Color.White);
-            _spriteBatch.Draw(barrierTexture, barrierRect2, Color.White);
+            foreach (Rectangle barrier in barriers)
+                _spriteBatch.Draw(barrierTexture, barrier, Color.White);
             _spriteBatch.Draw(exitTexture, exitRect, Color.White);
             _spriteBatch.Draw(currentPacTexture, pacRect, Color.White);
             foreach (Rectangle coin in coins)
